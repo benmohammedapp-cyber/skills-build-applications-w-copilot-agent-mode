@@ -8,6 +8,16 @@ const baseUrl = codespaceName
     ? `https://${codespaceName}-8000.app.github.dev`
     : `http://localhost:${PORT}`;
 app.set('trust proxy', true);
+app.use((req, res, next) => {
+    const requestOrigin = req.headers.origin ?? '*';
+    res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+    next();
+});
 app.use(express.json());
 const users = [
     { id: '1', name: 'Ava Johnson', email: 'ava@example.com', role: 'captain', score: 240 },
@@ -36,6 +46,20 @@ function sendCollection(res, collection, message) {
         results: collection,
     });
 }
+app.get(['/', '/index'], (_req, res) => {
+    res.json({
+        message: 'OctoFit Tracker API',
+        baseUrl,
+        endpoints: [
+            '/api/health',
+            '/api/users',
+            '/api/teams',
+            '/api/activities',
+            '/api/leaderboard',
+            '/api/workouts',
+        ],
+    });
+});
 app.get('/api', (_req, res) => {
     res.json({
         message: 'OctoFit Tracker API',
