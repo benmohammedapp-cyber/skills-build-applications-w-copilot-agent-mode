@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchApiCollection } from '../api.js';
+
+const getWorkoutsApiUrl = () => {
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  if (codespaceName && codespaceName.trim() && codespaceName !== 'undefined') {
+    return `https://${codespaceName.trim()}-8000.app.github.dev/api/workouts/`;
+  }
+
+  return 'http://localhost:8000/api/workouts/';
+};
 
 export default function Workouts() {
   const [workouts, setWorkouts] = useState([]);
@@ -7,8 +15,18 @@ export default function Workouts() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchApiCollection('workouts')
-      .then((data) => setWorkouts(data))
+    fetch(getWorkoutsApiUrl())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch');
+        }
+
+        return response.json();
+      })
+      .then((payload) => {
+        const data = Array.isArray(payload) ? payload : payload.results ?? payload.data ?? payload.items ?? [];
+        setWorkouts(data);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);

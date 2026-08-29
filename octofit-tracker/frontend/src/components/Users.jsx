@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchApiCollection } from '../api.js';
+
+const getUsersApiUrl = () => {
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  if (codespaceName && codespaceName.trim() && codespaceName !== 'undefined') {
+    return `https://${codespaceName.trim()}-8000.app.github.dev/api/users/`;
+  }
+
+  return 'http://localhost:8000/api/users/';
+};
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -7,8 +15,18 @@ export default function Users() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchApiCollection('users')
-      .then((data) => setUsers(data))
+    fetch(getUsersApiUrl())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch');
+        }
+
+        return response.json();
+      })
+      .then((payload) => {
+        const data = Array.isArray(payload) ? payload : payload.results ?? payload.data ?? payload.items ?? [];
+        setUsers(data);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);

@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchApiCollection } from '../api.js';
+
+const getTeamsApiUrl = () => {
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  if (codespaceName && codespaceName.trim() && codespaceName !== 'undefined') {
+    return `https://${codespaceName.trim()}-8000.app.github.dev/api/teams/`;
+  }
+
+  return 'http://localhost:8000/api/teams/';
+};
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);
@@ -7,8 +15,18 @@ export default function Teams() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchApiCollection('teams')
-      .then((data) => setTeams(data))
+    fetch(getTeamsApiUrl())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch');
+        }
+
+        return response.json();
+      })
+      .then((payload) => {
+        const data = Array.isArray(payload) ? payload : payload.results ?? payload.data ?? payload.items ?? [];
+        setTeams(data);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);

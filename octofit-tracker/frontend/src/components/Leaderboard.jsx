@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchApiCollection } from '../api.js';
+
+const getLeaderboardApiUrl = () => {
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  if (codespaceName && codespaceName.trim() && codespaceName !== 'undefined') {
+    return `https://${codespaceName.trim()}-8000.app.github.dev/api/leaderboard/`;
+  }
+
+  return 'http://localhost:8000/api/leaderboard/';
+};
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState([]);
@@ -7,8 +15,18 @@ export default function Leaderboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchApiCollection('leaderboard')
-      .then((data) => setEntries(data))
+    fetch(getLeaderboardApiUrl())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch');
+        }
+
+        return response.json();
+      })
+      .then((payload) => {
+        const data = Array.isArray(payload) ? payload : payload.results ?? payload.data ?? payload.items ?? [];
+        setEntries(data);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);

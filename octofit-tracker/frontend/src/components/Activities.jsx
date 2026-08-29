@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchApiCollection } from '../api.js';
+
+const getActivitiesApiUrl = () => {
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  if (codespaceName && codespaceName.trim() && codespaceName !== 'undefined') {
+    return `https://${codespaceName.trim()}-8000.app.github.dev/api/activities/`;
+  }
+
+  return 'http://localhost:8000/api/activities/';
+};
 
 export default function Activities() {
   const [activities, setActivities] = useState([]);
@@ -7,8 +15,18 @@ export default function Activities() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchApiCollection('activities')
-      .then((data) => setActivities(data))
+    fetch(getActivitiesApiUrl())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch');
+        }
+
+        return response.json();
+      })
+      .then((payload) => {
+        const data = Array.isArray(payload) ? payload : payload.results ?? payload.data ?? payload.items ?? [];
+        setActivities(data);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
