@@ -7,6 +7,7 @@ const codespaceName = process.env.CODESPACE_NAME;
 const baseUrl = codespaceName
     ? `https://${codespaceName}-8000.app.github.dev`
     : `http://localhost:${PORT}`;
+app.set('trust proxy', true);
 app.use(express.json());
 const users = [
     { id: '1', name: 'Ava Johnson', email: 'ava@example.com', role: 'captain', score: 240 },

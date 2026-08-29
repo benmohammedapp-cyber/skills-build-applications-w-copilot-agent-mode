@@ -9,6 +9,8 @@ const baseUrl = codespaceName
   ? `https://${codespaceName}-8000.app.github.dev`
   : `http://localhost:${PORT}`;
 
+app.set('trust proxy', true);
+
 app.use(express.json());
 
 const users = [
